@@ -1,20 +1,7 @@
 import {useState} from "react";
 import {z} from 'zod';
 
-const schema = z.object({
-    token: z.string().min(1, "Токен обязателен"),
-    title: z.string().min(1, "Заголовок обязателен"),
-    description: z.string().min(1, "Описание обязательно"),
-    tags: z.string().optional(),
-    budgetFrom: z.number().min(1, "Бюджет от должен быть больше 0"),
-    budgetTo: z.number().min(1, "Бюджет до должен быть больше 0"),
-    deadline: z.number().min(1, "Дэдлайн должен быть больше 0"),
-    reminds: z.number().min(1, "Количество напоминаний должно быть больше 0").optional(),
-    rules_budget_from: z.number().min(1, "Бюджет от должен быть больше 0"),
-    rules_budget_to: z.number().min(1, "Бюджет до должен быть больше 0"),
-    rules_deadline_days: z.number().min(1, "Срок выполнения должен быть больше 0"),
-    rules_qty_freelancers: z.number().min(1, "Количество фрилансеров должно быть больше 0"),
-});
+
 
 export const Form = () => {
     const [title, setTitle] = useState('');
@@ -29,8 +16,25 @@ export const Form = () => {
     const [rulesDeadlineDays, setRulesDeadlineDays] = useState('');
     const [rulesQtyFreelancers, setRulesQtyFreelancers] = useState('');
     const [token, setToken] = useState('');
+    const [allAutoResponses, setAllAutoResponses] = useState(false);
 
     const [errors, setErrors] = useState({});
+
+    const schema = z.object({
+        token: z.string().min(1, "Токен обязателен"),
+        title: z.string().min(1, "Заголовок обязателен"),
+        description: z.string().min(1, "Описание обязательно"),
+        tags: z.string().optional(),
+        budgetFrom: z.number().min(1, "Бюджет от должен быть больше 0"),
+        budgetTo: z.number().min(budgetFrom, "Бюджет до должен быть " + budgetFrom + ' и больше'),
+        deadline: z.number().min(1, "Дэдлайн должен быть больше 0"),
+        reminds: z.number().min(1, "Количество напоминаний должно быть больше 0").optional(),
+        rules_budget_from: z.number().min(1, "Бюджет от должен быть больше 0"),
+        rules_budget_to: z.number().min(rulesBudgetFrom, "Бюджет до должен быть " + rulesBudgetFrom + ' и больше'),
+        rules_deadline_days: z.number().min(1, "Срок выполнения должен быть больше 0"),
+        rules_qty_freelancers: z.number().min(1, "Количество фрилансеров должно быть больше 0"),
+        all_auto_responses: z.boolean(),
+    });
     const handleSubmit = async (e) => {
         e.preventDefault();
 
@@ -47,7 +51,10 @@ export const Form = () => {
             rules_budget_to: Number(rulesBudgetTo),
             rules_deadline_days: Number(rulesDeadlineDays),
             rules_qty_freelancers: Number(rulesQtyFreelancers),
+            all_auto_responses: allAutoResponses,
         };
+
+        // /newhardtask?token=317ad1fc-e0a9-11ef-a978-0242ac120007&title=%D0%A1%D0%B4%D0%B5%D0%BB%D0%B0%D1%82%D1%8C%20%D0%B4%D0%B8%D0%B7%D0%B0%D0%B9%D0%BD%20%D0%B1%D0%B0%D0%BD%D0%BD%D0%B5%D1%80%D0%B0&description=%D0%A1%D0%B4%D0%B5%D0%BB%D0%B0%D1%82%D1%8C%20%D0%B4%D0%B8%D0%B7%D0%B0%D0%B9%D0%BD%20%D0%BA%D0%B0%D1%80%D1%82%D0%BE%D1%87%D0%BA%D0%B8%20%D1%82%D0%BE%D0%B2%D0%B0%D1%80%D0%B0%20%D1%81%20%D0%BD%D0%B0%D1%88%D0%B8%D0%BC%D0%B8%20%D1%84%D0%BE%D1%82%D0%BE%20%D0%B4%D0%BB%D1%8F%20%D0%B2%D0%B1&tags=%D0%B2%D0%B1%2C%20%D0%B4%D0%B8%D0%B7%D0%B0%D0%B9%D0%BD%2C%20%D1%84%D0%B8%D0%B3%D0%BC%D0%B0&budget_from=1000&budget_to=5000&deadline=1&reminds=3&all_auto_responses=false&rules=%7B%22budget_from%22%3A5000%2C%22budget_to%22%3A8000%2C%22deadline_days%22%3A5%2C%22qty_freelancers%22%3A1%7D
 
         try {
             schema.parse(parsedData);
@@ -59,7 +66,8 @@ export const Form = () => {
                 encodeURIComponent(budgetFrom)}&budget_to=${
                 encodeURIComponent(budgetTo)}&deadline=${
                 encodeURIComponent(deadline)}&reminds=${
-                encodeURIComponent(reminds)}&rules_budget_from=${
+                encodeURIComponent(reminds)}&all_auto_responses=${
+                encodeURIComponent(allAutoResponses)}&rules_budget_from=${
                 encodeURIComponent(rulesBudgetFrom)}&rules_budget_to=${
                 encodeURIComponent(rulesBudgetTo)}&rules_deadline_days=${
                 encodeURIComponent(rulesDeadlineDays)}&rules_qty_freelancers=${
@@ -84,6 +92,7 @@ export const Form = () => {
             setRulesBudgetTo('');
             setRulesDeadlineDays('');
             setRulesQtyFreelancers('');
+            setAllAutoResponses(false);
             setErrors({});
         } catch (err) {
             setErrors(err.formErrors.fieldErrors);
@@ -259,6 +268,18 @@ export const Form = () => {
                     className="mt-1 block w-full border border-gray-300 rounded-md p-2 focus:ring focus:ring-indigo-500"
                 />
                 {errors.rules_qty_freelancers && <p className="text-red-500">{errors.rules_qty_freelancers}</p>}
+            </div>
+            <div className="mb-4">
+                <label className="flex items-center">
+                    <input
+                        type="checkbox"
+                        checked={allAutoResponses}
+                        onChange={(e) => setAllAutoResponses(e.target.checked)} // Обработчик изменения состояния
+                        className="mr-2"
+                    />
+                    Включить автоматические ответы
+                </label>
+                {errors.all_auto_responses && <p className="text-red-500">{errors.all_auto_responses}</p>}
             </div>
             <div className="mb-4">
                 <button
